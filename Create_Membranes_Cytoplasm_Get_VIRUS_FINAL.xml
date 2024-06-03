@@ -1,0 +1,124 @@
+<!--Created by Vision4D 4.0.0 tags/4.0-release^0@76bbcb26a477d9f8caf76b27e4d70e5b3c54cb28-->
+<pipeline version="4.0" created="0001-01-01T00:00:00" modified="2023-08-20T17:15:45.7855753-04:00">
+  <operations>
+    <operation type-id="arivis.analysis.selection" id="arivis.analysis.selection1">
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.selection1.0.0","p":null,"n":"Channel #1","a":true},{"v":1,"id":"arivis.analysis.selection1.0.1","p":null,"n":"Channel #2","a":true}]},{"Channels":[]},{"ObjectTags":[]}]</outputs>
+      <settings>{"Document":"D:\\Wanyu\\20230802 confocal\\mxra8 chikv 37 013.sis","ScopeID":"0","PixelSize":{"X":0.064999997615814209,"Y":0.064999997615814209,"Z":0.30000001192092896},"PixelType":1,"ChannelCount":2,"Bounds":"0, 0, 1524, 1578","Channels":"1-2","Planes":"1-75","Frames":"1","SelectionHint":3,"Zoom":0.5,"ZoomXYOnly":false,"CropToBounds":false,"LegacyMode":false}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.voxel.MembraneDetection" id="arivis.analysis.voxel.MembraneDetection1" name="Membrane Detection - enhance edges">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.selection1.0.0"}]}]</inputs>
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.MembraneDetection1.0.0","p":"arivis.analysis.selection1.0.0","n":"Channel #1","a":true}]}]</outputs>
+      <settings OutputMode="1" OutputFile="" CreateNewChannels="False" NewChannelNamePattern="$o ($n)">
+        <strategy planewise="False" />
+        <filter maintaincolorrange="True">{"MembraneWidth":0.89999999999999991,"MaxGapSize":0.6,"DataMinimum":0.0,"DataMaximum":2344.0,"GlobalMinimum":0.0,"GlobalMaximum":54.220188782848879,"UseLegacyMode":false}</filter>
+      </settings>
+    </operation>
+    <operation type-id="arivis.analysis.voxel.Denoising" id="arivis.analysis.voxel.Denoising1" name="Denoising">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.MembraneDetection1.0.0"}]}]</inputs>
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Denoising1.0.0","p":"arivis.analysis.voxel.MembraneDetection1.0.0","n":"Channel #1","a":true}]}]</outputs>
+      <settings algorithmId="arivis.analysis.imagetoimage.denoising.DiscreteGaussian" version="1.0" OutputMode="1" OutputFile="" CreateNewChannels="False" NewChannelNamePattern="$o ($n)">
+        <strategy planewise="False" />
+        <filter>{"UseLegacyMode":false,"Diameter":0.19999999999999998}</filter>
+      </settings>
+    </operation>
+    <operation type-id="arivis.analysis.voxelresult" id="arivis.analysis.voxelresult1">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Denoising1.0.0"},{"v":1,"id":"arivis.analysis.selection1.0.1"}]}]</inputs>
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxelresult1.0.0","p":"arivis.analysis.voxel.Denoising1.0.0","n":"Channel #1","a":true},{"v":1,"id":"arivis.analysis.voxelresult1.0.1","p":"arivis.analysis.selection1.0.1","n":"Channel #2","a":true}]},{}]</outputs>
+      <settings mode="2" useForAnnotations="true" filename="" scopename="membrane" autochannels="true" />
+    </operation>
+    <operation type-id="arivis.analysis.segmentation.MembraneWatershed" id="arivis.analysis.segmentation.MembraneWatershed1" name="Membrane-based Segmenter">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxelresult1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.segmentation.MembraneWatershed1.0.0","p":null,"n":"Membrane-based Segmenter","a":true,"cm":1,"c":"Cyan"}]}]</outputs>
+      <settings object-name-pattern="$t #$I ($o)" version="1.0">
+        <strategy planewise="True">
+          <restrictor />
+          <preparer>{"MinimumObjectSize":{"Value":49.999999999999993,"Type":0}}</preparer>
+        </strategy>
+        <labeler>{"MaximumDistance":16,"Threshold":1.0,"Level":0.2436248920716747,"Connectivity":1}</labeler>
+        <creator useholes="False" />
+        <merger>
+          <overlapping />
+          <touching>{"RatioForLargerObject":0.2,"RatioForSmallerObject":0.5,"ForSureRatioForSmallerObject":0.9,"MaximumObjectSize":{"Value":49.999999999999993,"Type":0}}</touching>
+          <validator>{"MaximumObjectSize":{"Value":49.999999999999993,"Type":0}}</validator>
+        </merger>
+        <filter>{"MinimumObjectSize":{"Value":0.0,"Type":1},"MaximumObjectSize":{"Value":49.999999999999993,"Type":0}}</filter>
+        <publisher />
+      </settings>
+    </operation>
+    <operation type-id="arivis.analysis.store.ImportAnnotation" id="arivis.analysis.store.ImportAnnotation1" name="Import_Viruses">
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.store.ImportAnnotation1.0.0","p":null,"n":"Import_Viruses","a":true,"cm":0,"c":"Cyan"}]}]</outputs>
+      <settings object-name-pattern="">{"Tags":["Virures"],"CopyCompartments":true,"TagsForOutput":null,"UseLegacy":true,"CopyTags":true,"TagsToRemove":null}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.FeatureFilter" id="arivis.analysis.volume.FeatureFilter2" name="Segment Feature Filter">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.segmentation.MembraneWatershed1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.FeatureFilter2.0.0","p":null,"n":"Segment Feature Filter","a":true,"cm":0,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.FeatureFilter2.0.1","p":null,"n":"not Segment Feature Filter","a":false,"cm":0,"c":"Cyan"}]}]</outputs>
+      <settings>{"FilterParts":[{"Mode":3,"Feature1":{"FeatureId":"arivis.analysis.features.type","ValueIndex":0},"Feature2":null,"Comparison":0,"CompareValue1":0.0,"CompareValue2":0.0,"CompareString":null},{"Mode":0,"Feature1":{"FeatureId":"arivis.analysis.features.volume","ValueIndex":0},"Feature2":null,"Comparison":1,"CompareValue1":4400.0,"CompareValue2":1.0,"CompareString":""}]}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.FeatureFilter" id="arivis.analysis.volume.FeatureFilter1" name="Cell masks">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.segmentation.MembraneWatershed1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.FeatureFilter1.0.0","p":null,"n":"Cell masks","a":true,"cm":0,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.FeatureFilter1.0.1","p":null,"n":"not Cell masks","a":false,"cm":0,"c":"Cyan"}]}]</outputs>
+      <settings>{"FilterParts":[{"Mode":3,"Feature1":{"FeatureId":"arivis.analysis.features.type","ValueIndex":0},"Feature2":null,"Comparison":0,"CompareValue1":0.0,"CompareValue2":0.0,"CompareString":null},{"Mode":0,"Feature1":{"FeatureId":"arivis.analysis.features.sphericity","ValueIndex":0},"Feature2":null,"Comparison":1,"CompareValue1":0.58,"CompareValue2":1.0,"CompareString":""},{"Mode":0,"Feature1":{"FeatureId":"arivis.analysis.features.volume","ValueIndex":0},"Feature2":null,"Comparison":1,"CompareValue1":2E-17,"CompareValue2":1.0,"CompareString":""}]}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.VolumeModification" id="arivis.analysis.volume.VolumeModification3" name="Cytoplasm">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.FeatureFilter1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification3.0.0","p":null,"n":"Cytoplasm","a":true,"cm":2,"c":"#BA0000"}]}]</outputs>
+      <settings object-name-pattern="$n ($o)">{"Modification":3,"Steps":2,"PerformPlaneWise":true,"CreateGroups":false}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.VolumeModification" id="arivis.analysis.volume.VolumeModification1" name="Membrane+Cytoplasm">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.FeatureFilter1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification1.0.0","p":null,"n":"Membrane+Cytoplasm","a":true,"cm":1,"c":"Cyan"}]}]</outputs>
+      <settings object-name-pattern="$n ($o)">{"Modification":2,"Steps":3,"PerformPlaneWise":false,"CreateGroups":false}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.ObjectMath" id="arivis.analysis.volume.ObjectMath2" name="Membranes">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification1.0.0"}]},{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification3.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.ObjectMath2.0.0","p":null,"n":"Membranes","a":true,"cm":2,"c":"#D88B00"}]}]</outputs>
+      <settings object-name-pattern="$n ($o)">
+        <modifier>{"ModificationType":0,"NeedsSecondInput":true,"UseFullConnectivity":true,"OnlyModifiedObjects":false}</modifier>
+      </settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.ObjectGrouping" id="arivis.analysis.volume.SegmentGrouping1" name="All_Cell Compartments">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification1.0.0"},{"v":1,"id":"arivis.analysis.volume.VolumeModification3.0.0"},{"v":1,"id":"arivis.analysis.volume.ObjectMath2.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.SegmentGrouping1.0.0","p":null,"n":"All_Cell Compartments","a":true,"cm":2,"c":"#C96EC9"}]}]</outputs>
+      <settings version="1.0" createAGroupPerTimePoint="False">{"GroupPerInput":true,"CreateEmptyGroups":true}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.Compartmentalization" id="arivis.analysis.volume.Compartmentalization1" name="Viruses_in_membrane_in_cell">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification1.0.0"},{"v":1,"id":"arivis.analysis.volume.ObjectMath2.0.0"},{"v":1,"id":"arivis.analysis.store.ImportAnnotation1.0.0"},{"v":1,"id":"arivis.analysis.volume.VolumeModification3.0.0"},{"v":1,"id":"arivis.analysis.store.ImportAnnotation1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.0","p":null,"n":"Viruses_in_membrane_in_cell","a":true,"cm":0,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.1","p":null,"n":"Membranes in Membrane+Cytoplasm","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.2","p":null,"n":"Membrane+Cytoplasm with Membranes","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.3","p":null,"n":"Import_Viruses in Membranes in Membrane+Cytoplasm","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.4","p":null,"n":"Membranes in Membrane+Cytoplasm with Import_Viruses","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.5","p":null,"n":"Cytoplasm in Membranes in Membrane+Cytoplasm","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.6","p":null,"n":"Membranes in Membrane+Cytoplasm with Cytoplasm","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.7","p":null,"n":"Import_Viruses in Cytoplasm in Membranes in Membrane+Cytoplasm","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.8","p":null,"n":"Cytoplasm in Membranes in Membrane+Cytoplasm with Import_Viruses","a":false,"cm":4,"c":"Cyan"}]}]</outputs>
+      <settings version="2.0">{"NodeLevels":[1,2,3,2,3],"NodeSettings":[{"ProvideAsFilteredOutputForParent":false,"FilteredOutputForParentName":"Membrane+Cytoplasm","Modes":3,"Overlap":0.95000000000000007,"MaximumDistance":0.0,"ProvideAsOutput":false,"OutputName":"Membrane+Cytoplasm","ProvideOverlapAsFeature":false,"ProvideDistanceAsFeature":false,"ProvideModeTags":false},{"ProvideAsFilteredOutputForParent":false,"FilteredOutputForParentName":"Membrane+Cytoplasm with Membranes","Modes":3,"Overlap":0.95000000000000007,"MaximumDistance":0.0,"ProvideAsOutput":false,"OutputName":"Membranes in Membrane+Cytoplasm","ProvideOverlapAsFeature":false,"ProvideDistanceAsFeature":false,"ProvideModeTags":false},{"ProvideAsFilteredOutputForParent":false,"FilteredOutputForParentName":"Membranes in Membrane+Cytoplasm with Import_Viruses","Modes":3,"Overlap":0.65,"MaximumDistance":0.0,"ProvideAsOutput":false,"OutputName":"Import_Viruses in Membranes in Membrane+Cytoplasm","ProvideOverlapAsFeature":false,"ProvideDistanceAsFeature":false,"ProvideModeTags":false},{"ProvideAsFilteredOutputForParent":false,"FilteredOutputForParentName":"Membranes in Membrane+Cytoplasm with Cytoplasm","Modes":3,"Overlap":0.95000000000000007,"MaximumDistance":0.0,"ProvideAsOutput":false,"OutputName":"Cytoplasm in Membranes in Membrane+Cytoplasm","ProvideOverlapAsFeature":false,"ProvideDistanceAsFeature":false,"ProvideModeTags":false},{"ProvideAsFilteredOutputForParent":false,"FilteredOutputForParentName":"Cytoplasm in Membranes in Membrane+Cytoplasm with Import_Viruses","Modes":3,"Overlap":0.65,"MaximumDistance":0.0,"ProvideAsOutput":false,"OutputName":"Import_Viruses in Cytoplasm in Membranes in Membrane+Cytoplasm","ProvideOverlapAsFeature":false,"ProvideDistanceAsFeature":false,"ProvideModeTags":false}]}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.volume.Compartmentalization" id="arivis.analysis.volume.Compartmentalization2" name="virus in whole cells">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification1.0.0"},{"v":1,"id":"arivis.analysis.store.ImportAnnotation1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.Compartmentalization2.0.0","p":null,"n":"virus in whole cells","a":true,"cm":0,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization2.0.1","p":null,"n":"Import_Viruses in Membrane+Cytoplasm","a":false,"cm":4,"c":"Cyan"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization2.0.2","p":null,"n":"Membrane+Cytoplasm with Import_Viruses","a":false,"cm":4,"c":"Cyan"}]}]</outputs>
+      <settings version="2.0">{"NodeLevels":[1,2],"NodeSettings":[{"ProvideAsFilteredOutputForParent":false,"FilteredOutputForParentName":"Membrane+Cytoplasm","Modes":3,"Overlap":0.95000000000000007,"MaximumDistance":0.0,"ProvideAsOutput":false,"OutputName":"Membrane+Cytoplasm","ProvideOverlapAsFeature":false,"ProvideDistanceAsFeature":false,"ProvideModeTags":false},{"ProvideAsFilteredOutputForParent":false,"FilteredOutputForParentName":"Membrane+Cytoplasm with Import_Viruses","Modes":3,"Overlap":0.95000000000000007,"MaximumDistance":0.0,"ProvideAsOutput":false,"OutputName":"Import_Viruses in Membrane+Cytoplasm","ProvideOverlapAsFeature":false,"ProvideDistanceAsFeature":false,"ProvideModeTags":false}]}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.store.ExportAnnotation" id="arivis.analysis.store.ExportAnnotation1" name="Export Object Features">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.ObjectMath2.0.0"}]}]</inputs>
+      <settings version="3.1">{"File":"D:\\Wanyu\\20230802 confocal\\output\\CHIKV_MXRA8_37_1_membranes.xlsx","Features":[{"FeatureId":"arivis.analysis.features.tags","ValueIndex":0},{"FeatureId":"id","ValueIndex":0},{"FeatureId":"arivis.analysis.features.name","ValueIndex":0},{"FeatureId":"arivis.analysis.features.childcount","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":2},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":2},{"FeatureId":"arivis.analysis.features.volume","ValueIndex":0},{"FeatureId":"arivis.analysis.features.sphericity","ValueIndex":0},{"FeatureId":"73eb1a8d-088e-4203-b450-251105879964","ValueIndex":0}],"Details":[{"FeatureId":"arivis.analysis.features.tags","ValueIndex":0},{"FeatureId":"id","ValueIndex":0},{"FeatureId":"arivis.analysis.features.childcount","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":1},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":2},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":1},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":2}],"Mode":5}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.store.ExportAnnotation" id="arivis.analysis.store.ExportAnnotation3" name="Export Object Features 3">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification3.0.0"}]}]</inputs>
+      <settings version="3.1">{"File":"D:\\Wanyu\\20230804 confocal\\output\\CHIKV_MXRA8_37_1_cytoplasm.xlsx","Features":[{"FeatureId":"arivis.analysis.features.type","ValueIndex":0},{"FeatureId":"arivis.analysis.features.tags","ValueIndex":0},{"FeatureId":"id","ValueIndex":0},{"FeatureId":"arivis.analysis.features.name","ValueIndex":0},{"FeatureId":"arivis.analysis.features.childcount","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.volume","ValueIndex":0}],"Details":null,"Mode":5}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.store.ExportAnnotation" id="arivis.analysis.store.ExportAnnotation2" name="Export Object Features 2">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.0"}]}]</inputs>
+      <settings version="3.1">{"File":"D:\\Wanyu\\20230804 confocal\\output\\CHIKV_MXRA8_37_1_viruses_in_membranes.xlsx","Features":[{"FeatureId":"id","ValueIndex":0},{"FeatureId":"arivis.analysis.features.name","ValueIndex":0},{"FeatureId":"arivis.analysis.features.childcount","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":1},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":2},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":3},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":4},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":5},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":1},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":2},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":3},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":4},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":5},{"FeatureId":"arivis.analysis.features.volume","ValueIndex":0}],"Details":[{"FeatureId":"arivis.analysis.features.tags","ValueIndex":0},{"FeatureId":"arivis.analysis.features.scope","ValueIndex":0},{"FeatureId":"arivis.analysis.features.childcount","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.children-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-ids","ValueIndex":0},{"FeatureId":"arivis.analysis.features.parent-names","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":1},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":2},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":3},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":4},{"FeatureId":"arivis.analysis.features.intensities[0]","ValueIndex":5},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":0},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":1},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":2},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":3},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":4},{"FeatureId":"arivis.analysis.features.intensities[1]","ValueIndex":5}],"Mode":5}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.store.StoreAnnotation" id="arivis.analysis.store.StoreAnnotation1">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.volume.VolumeModification3.0.0"},{"v":1,"id":"arivis.analysis.volume.VolumeModification1.0.0"},{"v":1,"id":"arivis.analysis.volume.ObjectMath2.0.0"},{"v":1,"id":"arivis.analysis.volume.SegmentGrouping1.0.0"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization1.0.0"},{"v":1,"id":"arivis.analysis.volume.Compartmentalization2.0.0"}]}]</inputs>
+      <settings version="V_2_12_5">{"NamePattern":"$n","TagPattern":"$n","TagsToAdd":null,"TagsToDelete":null,"PreserveAllTags":true,"KeepOnUndo":true}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.endOfPipeline" id="arivis.analysis.endOfPipeline1">
+      <settings />
+    </operation>
+  </operations>
+  <layout>
+    <entry name="_viewpartstates">arivis.analysis.selection1=advanced
+arivis.analysis.voxelresult1=collapsed
+arivis.analysis.volume.ObjectMath2=advanced
+arivis.analysis.store.StoreAnnotation1=advanced
+</entry>
+    <entry name="arivis.analysis.segmentation.MembraneWatershed1">{"Threshold":{"pixeltype":"UInt16","minimum":"0","maximum":"46517"}}</entry>
+    <entry name="arivis.analysis.store.StoreAnnotation1">[]</entry>
+  </layout>
+  <features><![CDATA[{"Version":"3.1","Features":[{"FactoryId":"arivis.analysis.features.intensities","Id":"arivis.analysis.features.intensities[0]","Name":"Intensities #1","Parameter":"{\"Channel\":0}"},{"FactoryId":"arivis.analysis.features.intensities","Id":"arivis.analysis.features.intensities[1]","Name":"Intensities #2","Parameter":"{\"Channel\":1}"},{"FactoryId":"arivis.objectstore.features.child","Id":"73eb1a8d-088e-4203-b450-251105879964","Name":"Object Count","Parameter":"{\"Tag\":\"Blob Finder\",\"Subgroups\":false,\"ObjectType\":null}"}]}]]></features>
+</pipeline>
