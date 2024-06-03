@@ -1,0 +1,61 @@
+<!--Created by Vision4D 4.0.0 tags/4.0-release^0@76bbcb26a477d9f8caf76b27e4d70e5b3c54cb28-->
+<pipeline version="4.0" created="0001-01-01T00:00:00" modified="2024-01-05T11:17:03.2877884-05:00">
+  <operations>
+    <operation type-id="arivis.analysis.selection" id="arivis.analysis.selection1">
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.selection1.0.1","p":null,"n":"Channel #2","a":true}]},{"Channels":[]},{"ObjectTags":[]}]</outputs>
+      <settings>{"Document":"D:\\Wanyu\\20230804 confocal\\converted\\pcdh10 weev 4_005.sis","ScopeID":"0","PixelSize":{"X":0.064999997615814209,"Y":0.064999997615814209,"Z":0.30000001192092896},"PixelType":1,"ChannelCount":2,"Bounds":"0, 0, 1524, 1578","Channels":"2","Planes":"1-91","Frames":"1","SelectionHint":3,"Zoom":0.5,"ZoomXYOnly":false,"CropToBounds":false,"LegacyMode":false}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.voxel.Threshold" id="arivis.analysis.voxel.Threshold1" name="Threshold Filter">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.selection1.0.1"}]}]</inputs>
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Threshold1.0.0","p":"arivis.analysis.selection1.0.1","n":"Channel #2","a":true}]}]</outputs>
+      <settings algorithmId="arivis.analysis.imagetoimage.threshold.Simple" version="1.0" OutputMode="1" OutputFile="" CreateNewChannels="False" NewChannelNamePattern="$o ($n)">
+        <strategy planewise="False" />
+        <filter>{"Threshold":145.0,"Above":true,"Binarize":false}</filter>
+      </settings>
+    </operation>
+    <operation type-id="arivis.analysis.voxel.Denoising" id="arivis.analysis.voxel.Denoising1" name="Denoising">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Threshold1.0.0"}]}]</inputs>
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Denoising1.0.0","p":"arivis.analysis.voxel.Threshold1.0.0","n":"Channel #2","a":true}]}]</outputs>
+      <settings algorithmId="arivis.analysis.imagetoimage.denoising.ParticleEnhancement" version="1.0" OutputMode="1" OutputFile="" CreateNewChannels="False" NewChannelNamePattern="$o ($n)">
+        <strategy planewise="False" />
+        <filter>{"Lambda":3.0,"UseLegacyMode":false,"Diameter":0.6}</filter>
+      </settings>
+    </operation>
+    <operation type-id="arivis.analysis.voxel.Morphology" id="arivis.analysis.voxel.Morphology1" name="Morphology Filter">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Denoising1.0.0"}]}]</inputs>
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Morphology1.0.0","p":"arivis.analysis.voxel.Denoising1.0.0","n":"Channel #2","a":true}]}]</outputs>
+      <settings OutputMode="1" OutputFile="" CreateNewChannels="False" NewChannelNamePattern="$o ($n)">
+        <strategy planewise="False" />
+        <filter>{"Filter":1,"Shape":0,"Radius":0.12999999523162842}</filter>
+      </settings>
+    </operation>
+    <operation type-id="arivis.analysis.voxelresult" id="arivis.analysis.voxelresult1">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxel.Morphology1.0.0"}]}]</inputs>
+      <outputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxelresult1.0.0","p":"arivis.analysis.voxel.Morphology1.0.0","n":"Channel #2","a":true}]},{}]</outputs>
+      <settings mode="1" useForAnnotations="false" filename="" scopename="" autochannels="true" />
+    </operation>
+    <operation type-id="arivis.analysis.segmentation.BlobFinderDeprecated" id="arivis.analysis.segmentation.BlobFinder1" name="Virures">
+      <inputs>[{"Channels":[{"v":1,"id":"arivis.analysis.voxelresult1.0.0"}]}]</inputs>
+      <outputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.segmentation.BlobFinder1.0.0","p":null,"n":"Virures","a":true,"cm":1,"c":"Cyan"}]}]</outputs>
+      <settings>{"Level":0.090909090909090912,"Diameter":0.51999998092651367,"Threshold":0.21240442159796594,"Normalization":"FirstTimePointLocal","Minimum":0.0,"Maximum":0.0,"PerformPlaneWise":false,"Connectivity":"FullXY","AllowHoles":false,"ObjectNamePattern":"$t #$I ($o)","UseExponentialNormalization":false}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.store.StoreAnnotation" id="arivis.analysis.store.StoreAnnotation1">
+      <inputs>[{"ObjectTags":[{"v":1,"id":"arivis.analysis.segmentation.BlobFinder1.0.0"}]}]</inputs>
+      <settings version="V_2_12_5">{"NamePattern":"$n","TagPattern":"$n","TagsToAdd":null,"TagsToDelete":null,"PreserveAllTags":false,"KeepOnUndo":true}</settings>
+    </operation>
+    <operation type-id="arivis.analysis.endOfPipeline" id="arivis.analysis.endOfPipeline1">
+      <settings />
+    </operation>
+  </operations>
+  <layout>
+    <entry name="_viewpartstates">arivis.analysis.selection1=advanced
+arivis.analysis.voxel.Denoising1=advanced
+arivis.analysis.voxel.Morphology1=advanced
+arivis.analysis.voxelresult1=collapsed
+arivis.analysis.store.StoreAnnotation1=advanced
+</entry>
+    <entry name="arivis.analysis.voxel.Threshold1">{"Filter.Threshold":{"pixeltype":"UInt16","minimum":"50","maximum":"1287"}}</entry>
+    <entry name="arivis.analysis.store.StoreAnnotation1">[]</entry>
+  </layout>
+  <features><![CDATA[{"Version":"3.1","Features":[]}]]></features>
+</pipeline>
